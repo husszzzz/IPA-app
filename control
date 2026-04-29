@@ -1,9 +1,9 @@
-Package: com.hussain.moonmanager
-Name: Moon Manager
-Depends: mobilesubstrate
+Package: com.huss.moonmanager
+Name: MoonManager
+Depends: pods
 Version: 1.0
 Architecture: iphoneos-arm
-Description: تطبيق إدارة الروابط والنصوص باحترافية - من تطوير حسين.
-Maintainer: Hussain Al-Hasani
-Author: Hussain Al-Hasani
+Description: Moon Manager App
+Maintainer: huss
+Author: huss
 Section: Applications
