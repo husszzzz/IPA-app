@@ -27,18 +27,22 @@ jobs:
           export THEOS=~/theos
           make clean all
 
-      - name: Prepare IPA
+      - name: Create Valid IPA Structure
         run: |
-          # إنشاء مجلد الـ Payload وضبط الملفات
+          # 1. إنشاء المجلد الأساسي الذي يحتاجه الأيفون
           mkdir -p Payload
-          # البحث عن مجلد التطبيق الناتج ونقله
-          APP_PATH=$(find . -name "*.app" -type d | head -n 1)
+          
+          # 2. البحث عن مجلد .app الناتج من عملية البناء
+          APP_PATH=$(find .theos/obj/ -name "*.app" -type d | head -n 1)
+          
+          # 3. نسخ مجلد التطبيق إلى داخل مجلد Payload
           cp -r "$APP_PATH" Payload/
-          # ضغط المجلد وتحويله إلى IPA
-          zip -r MoonManager.ipa Payload
+          
+          # 4. ضغط المجلد بصيغة IPA صحيحة
+          zip -vr MoonManager.ipa Payload/
 
-      - name: Upload IPA Artifact
+      - name: Upload Finished IPA
         uses: actions/upload-artifact@v4
         with:
-          name: MoonManager-Ready-IPA
+          name: MoonManager-Fixed-IPA
           path: MoonManager.ipa
