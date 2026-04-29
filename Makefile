@@ -4,8 +4,10 @@ INSTALL_TARGET_PROCESSES = MoonManager
 include $(THEOS)/makefiles/common.mk
 
 APPLICATION_NAME = MoonManager
-MoonManager_FILES = main.m MoonAppDelegate.m MoonRootViewController.m
+
+# لاحظ هنا: استدعينا فقط ملف main.m لأن كل الكود صار داخله
+MoonManager_FILES = main.m
 MoonManager_FRAMEWORKS = UIKit CoreGraphics
 MoonManager_CFLAGS = -fobjc-arc
 
-include $(THEOS)/makefiles/application.mk
+include $(THEOS_MAKE_PATH)/application.mk
