@@ -27,32 +27,51 @@ jobs:
           export THEOS=~/theos
           make clean all
 
-      - name: Force IPA Structure
+      - name: Create IPA with Info.plist
         run: |
-          # تنظيف أي محاولات سابقة
-          rm -rf Payload MoonManager.ipa
           mkdir -p Payload
+          APP_FOLDER=$(find .theos/obj/ -name "*.app" -type d | head -n 1)
+          cp -r "$APP_FOLDER" Payload/
           
-          # البحث عن المجلد الذي ينتهي بـ .app داخل مجلد المشروع
-          # المسار غالباً يكون في .theos/obj/debug أو .theos/obj/
-          APP_FOLDER=$(find . -name "*.app" -type d | grep -v "theos/" | head -n 1)
-          
-          if [ -z "$APP_FOLDER" ]; then
-            # إذا لم يجده في الخارج، يبحث داخل مجلد .theos
-            APP_FOLDER=$(find .theos/obj/ -name "*.app" -type d | head -n 1)
+          # إنشاء ملف Info.plist أساسي إذا لم يكن موجوداً (هذا يمنع الكراش)
+          if [ ! -f "Payload/MoonManager.app/Info.plist" ]; then
+            cat <<EOF > Payload/MoonManager.app/Info.plist
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0">
+          <dict>
+              <key>CFBundleExecutable</key>
+              <string>MoonManager</string>
+              <key>CFBundleIdentifier</key>
+              <string>com.huss.moonmanager</string>
+              <key>CFBundleName</key>
+              <string>MoonManager</string>
+              <key>CFBundlePackageType</key>
+              <string>APPL</string>
+              <key>CFBundleShortVersionString</key>
+              <string>1.0</string>
+              <key>LSRequiresIPhoneOS</key>
+              <true/>
+              <key>MinimumOSVersion</key>
+              <string>14.0</string>
+              <key>UILaunchStoryboardName</key>
+              <string>LaunchScreen</string>
+              <key>UIRequiredDeviceCapabilities</key>
+              <array>
+                  <string>arm64</string>
+              </array>
+          </dict>
+          </plist>
+          EOF
           fi
+
+          # التوقيع المبدئي للملفات التنفيذية
+          ldid -S Payload/MoonManager.app/MoonManager
           
-          echo "Found App at: $APP_FOLDER"
-          
-          # نسخ المجلد وتغيير الأذونات لضمان عمله
-          cp -R "$APP_FOLDER" Payload/
-          chmod -R 755 Payload/
-          
-          # ضغط المجلد بطريقة متوافقة مع الأيفون
           zip -r MoonManager.ipa Payload/
 
       - name: Upload Finished IPA
         uses: actions/upload-artifact@v4
         with:
-          name: MoonManager-Final-Ready
+          name: MoonManager-Success
           path: MoonManager.ipa
