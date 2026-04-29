@@ -1,4 +1,4 @@
-name: Build MoonManager
+name: Build MoonManager IPA
 on: [push, pull_request]
 
 jobs:
@@ -13,14 +13,12 @@ jobs:
 
       - name: Setup Theos
         run: |
-          # تنظيف أي بناء سابق لضمان عدم حدوث خطأ 128
           rm -rf ~/theos
           git clone --recursive https://github.com/theos/theos.git ~/theos
           echo "THEOS=~/theos" >> $GITHUB_ENV
 
       - name: Setup SDK
         run: |
-          # تنظيف الـ SDKs القديمة وتحميل الجديدة
           rm -rf ~/theos/sdks
           git clone https://github.com/theos/sdks.git ~/theos/sdks
 
@@ -29,9 +27,18 @@ jobs:
           export THEOS=~/theos
           make clean all
 
-      - name: Upload Artifact
+      - name: Prepare IPA
+        run: |
+          # إنشاء مجلد الـ Payload وضبط الملفات
+          mkdir -p Payload
+          # البحث عن مجلد التطبيق الناتج ونقله
+          APP_PATH=$(find . -name "*.app" -type d | head -n 1)
+          cp -r "$APP_PATH" Payload/
+          # ضغط المجلد وتحويله إلى IPA
+          zip -r MoonManager.ipa Payload
+
+      - name: Upload IPA Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MoonManager-App
-          # المسار المحدث لضمان العثور على الملف ورفعه في الـ Artifacts
-          path: "**/obj/*.app"
+          name: MoonManager-Ready-IPA
+          path: MoonManager.ipa
