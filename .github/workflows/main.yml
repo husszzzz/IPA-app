@@ -6,25 +6,28 @@ jobs:
     runs-on: macos-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Install Dependencies
         run: brew install ldid
 
       - name: Setup Theos
         run: |
+          # تنظيف أي محاولة سابقة لضمان عدم حدوث خطأ 128
+          rm -rf ~/theos
           git clone --recursive https://github.com/theos/theos.git ~/theos
           echo "THEOS=~/theos" >> $GITHUB_ENV
 
       - name: Setup SDK
         run: |
+          # حذف مجلد الـ SDKs إذا كان موجوداً قبل التحميل
+          rm -rf ~/theos/sdks
           git clone https://github.com/theos/sdks.git ~/theos/sdks
 
       - name: Build Application
         run: |
+          export THEOS=~/theos
           make clean all
-          # هذا السطر للتأكد من مكان المجلد الناتج
-          ls -R .theos/obj/
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
