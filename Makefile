@@ -1,13 +1,13 @@
 TARGET := iphone:clang:latest:14.0
-INSTALL_TARGET_PROCESSES = MoonManager
+ARCHS = arm64
+DEBUG = 0
+FINALPACKAGE = 1
 
 include $(THEOS)/makefiles/common.mk
 
-APPLICATION_NAME = MoonManager
-MoonManager_FILES = main.m
-MoonManager_FRAMEWORKS = UIKit CoreGraphics
-MoonManager_CFLAGS = -fobjc-arc
-# هذا السطر يضمن بناء هيكلية المجلدات بشكل صحيح
-MoonManager_INSTALL_PATH = /Applications
+APPLICATION_NAME = HassanyApp
+HassanyApp_FILES = main.m
+HassanyApp_FRAMEWORKS = UIKit CoreGraphics
+HassanyApp_CFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/application.mk
