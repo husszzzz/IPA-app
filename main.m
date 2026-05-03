@@ -1,77 +1,68 @@
-name: Build MoonManager IPA
-on: [push, pull_request]
+#import <UIKit/UIKit.h>
 
-jobs:
-  build:
-    runs-on: macos-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
+// --- 1. قسم واجهة المستخدم (ViewController) ---
+@interface RootViewController : UIViewController
+@end
 
-      - name: Install Dependencies
-        run: brew install ldid
+@implementation RootViewController
 
-      - name: Setup Theos
-        run: |
-          rm -rf ~/theos
-          git clone --recursive https://github.com/theos/theos.git ~/theos
-          echo "THEOS=~/theos" >> $GITHUB_ENV
+- (void)viewDidLoad {
+    [super viewDidLoad];
+    
+    // لون خلفية التطبيق
+    self.view.backgroundColor = [UIColor whiteColor];
 
-      - name: Setup SDK
-        run: |
-          rm -rf ~/theos/sdks
-          git clone https://github.com/theos/sdks.git ~/theos/sdks
+    // تصميم الزر
+    UIButton *myButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    myButton.frame = CGRectMake(0, 0, 200, 50);
+    myButton.center = self.view.center; // يخلي الزر بنص الشاشة
+    
+    [myButton setTitle:@"اضغط هنا يا حسين" forState:UIControlStateNormal];
+    myButton.backgroundColor = [UIColor blackColor];
+    [myButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    myButton.layer.cornerRadius = 12; // يخلي حواف الزر دائرية مرتبة
+    myButton.titleLabel.font = [UIFont boldSystemFontOfSize:18];
+    
+    // ربط الزر بأمر معين (لما تضغط عليه)
+    [myButton addTarget:self action:@selector(buttonTapped) forControlEvents:UIControlEventTouchUpInside];
+    
+    // إضافة الزر للشاشة
+    [self.view addSubview:myButton];
+}
 
-      - name: Build Application
-        run: |
-          export THEOS=~/theos
-          make clean all
+// الأمر اللي يتنفذ لما تضغط على الزر
+- (void)buttonTapped {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"مرحباً بك!" 
+                                                                   message:@"عاشت إيدك، التطبيق شغال 100% وتقدر هسة تضيف أزرار أكثر." 
+                                                            preferredStyle:UIAlertControllerStyleAlert];
+    
+    UIAlertAction *okAction = [UIAlertAction actionWithTitle:@"تمام" style:UIAlertActionStyleDefault handler:nil];
+    [alert addAction:okAction];
+    
+    [self presentViewController:alert animated:YES completion:nil];
+}
 
-      - name: Create IPA with Info.plist
-        run: |
-          mkdir -p Payload
-          APP_FOLDER=$(find .theos/obj/ -name "*.app" -type d | head -n 1)
-          cp -r "$APP_FOLDER" Payload/
-          
-          # إنشاء ملف Info.plist أساسي إذا لم يكن موجوداً (هذا يمنع الكراش)
-          if [ ! -f "Payload/MoonManager.app/Info.plist" ]; then
-            cat <<EOF > Payload/MoonManager.app/Info.plist
-          <?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>CFBundleExecutable</key>
-              <string>MoonManager</string>
-              <key>CFBundleIdentifier</key>
-              <string>com.huss.moonmanager</string>
-              <key>CFBundleName</key>
-              <string>MoonManager</string>
-              <key>CFBundlePackageType</key>
-              <string>APPL</string>
-              <key>CFBundleShortVersionString</key>
-              <string>1.0</string>
-              <key>LSRequiresIPhoneOS</key>
-              <true/>
-              <key>MinimumOSVersion</key>
-              <string>14.0</string>
-              <key>UILaunchStoryboardName</key>
-              <string>LaunchScreen</string>
-              <key>UIRequiredDeviceCapabilities</key>
-              <array>
-                  <string>arm64</string>
-              </array>
-          </dict>
-          </plist>
-          EOF
-          fi
+@end
 
-          # التوقيع المبدئي للملفات التنفيذية
-          ldid -S Payload/MoonManager.app/MoonManager
-          
-          zip -r MoonManager.ipa Payload/
+// --- 2. قسم المحرك الأساسي (AppDelegate) ---
+@interface AppDelegate : UIResponder <UIApplicationDelegate>
+@property (strong, nonatomic) UIWindow *window;
+@end
 
-      - name: Upload Finished IPA
-        uses: actions/upload-artifact@v4
-        with:
-          name: MoonManager-Success
-          path: MoonManager.ipa
+@implementation AppDelegate
+
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    self.window.rootViewController = [[RootViewController alloc] init];
+    [self.window makeKeyAndVisible];
+    return YES;
+}
+
+@end
+
+// --- 3. نقطة انطلاق التطبيق (Main Function) ---
+int main(int argc, char * argv[]) {
+    @autoreleasepool {
+        return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
+    }
+}
