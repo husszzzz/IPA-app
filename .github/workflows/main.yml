@@ -1,28 +1,70 @@
-      - name: Create IPA
-        run: |
-          APP_NAME="HassanyBoost"
-          mkdir -p Payload/$APP_NAME.app
-          cp .theos/obj/$APP_NAME.app/$APP_NAME Payload/$APP_NAME.app/
-          
-          echo '<?xml version="1.0" encoding="UTF-8"?>
-          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-          <plist version="1.0">
-          <dict>
-              <key>CFBundleExecutable</key>
-              <string>HassanyBoost</string>
-              <key>CFBundleIdentifier</key>
-              <string>com.hassany.boost</string>
-              <key>CFBundleName</key>
-              <string>Hassany</string>
-              <key>UIBackgroundModes</key>
-              <array>
-                  <string>audio</string>
-              </array>
-              <key>NSMicrophoneUsageDescription</key>
-              <string>نحتاج المايكروفون للتضخيم والتسجيل</string>
-              <key>MinimumOSVersion</key>
-              <string>14.0</string>
-          </dict>
-          </plist>' > Payload/$APP_NAME.app/Info.plist
-          
-          zip -r HassanyBoost.ipa Payload
+name: Build HassanyBoost
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup Theos
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
+        echo "THEOS=~/theos" >> $GITHUB_ENV
+
+    - name: Build App
+      run: |
+        export THEOS=~/theos
+        make package
+
+    - name: Create IPA
+      run: |
+        # إنشاء هيكل ملف الـ IPA بشكل صحيح
+        mkdir -p Payload/HassanyBoost.app
+        
+        # نسخ الملف التنفيذي (تأكد من الاسم الصحيح الناتج من make)
+        cp .theos/obj/HassanyBoost.app/HassanyBoost Payload/HassanyBoost.app/
+        
+        # إنشاء ملف Info.plist لدعم العمل في الخلفية والمايك
+        cat <<EOF > Payload/HassanyBoost.app/Info.plist
+        <?xml version="1.0" encoding="UTF-8"?>
+        <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+        <plist version="1.0">
+        <dict>
+            <key>CFBundleExecutable</key>
+            <string>HassanyBoost</string>
+            <key>CFBundleIdentifier</key>
+            <string>com.hassany.proboost</string>
+            <key>CFBundleName</key>
+            <string>Hassany</string>
+            <key>CFBundlePackageType</key>
+            <string>APPL</string>
+            <key>CFBundleShortVersionString</key>
+            <string>1.0</string>
+            <key>UIBackgroundModes</key>
+            <array>
+                <string>audio</string>
+            </array>
+            <key>NSMicrophoneUsageDescription</key>
+            <string>نحتاج المايكروفون للتضخيم والتسجيل الاحترافي</string>
+            <key>LSRequiresIPhoneOS</key>
+            <true/>
+            <key>MinimumOSVersion</key>
+            <string>14.0</string>
+        </dict>
+        </plist>
+        EOF
+        
+        zip -r HassanyBoost.ipa Payload
+
+    - name: Upload IPA
+      uses: actions/upload-artifact@v4 # تم التحديث للنسخة v4 لحل خطأ الـ Deprecation
+      with:
+        name: HassanyBoost-IPA
+        path: HassanyBoost.ipa
