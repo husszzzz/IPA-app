@@ -12,6 +12,8 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup Theos
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # 👈 هذا هو السطر السحري اللي يحل المشكلة
       run: |
         bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
         echo "THEOS=~/theos" >> $GITHUB_ENV
@@ -23,7 +25,6 @@ jobs:
 
     - name: Create IPA
       run: |
-        # ملاحظة: الاسم هنا يجب أن يطابق APPLICATION_NAME في الـ Makefile
         APP_NAME="MoonHearBoost"
         mkdir -p Payload/$APP_NAME.app
         cp .theos/obj/$APP_NAME.app/$APP_NAME Payload/$APP_NAME.app/
@@ -43,7 +44,11 @@ jobs:
             <key>CFBundleShortVersionString</key>
             <string>1.0</string>
             <key>NSMicrophoneUsageDescription</key>
-            <string>تضخيم الصوت</string>
+            <string>نحتاج المايكروفون لتمكين التضخيم الاحترافي</string>
+            <key>LSRequiresIPhoneOS</key>
+            <true/>
+            <key>MinimumOSVersion</key>
+            <string>14.0</string>
         </dict>
         </plist>' > Payload/$APP_NAME.app/Info.plist
         
