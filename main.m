@@ -1,93 +1,79 @@
 #import <UIKit/UIKit.h>
-#import <WebKit/WebKit.h>
+#import <AVFoundation/AVFoundation.h>
 
-@interface RootViewController : UIViewController <WKNavigationDelegate, WKUIDelegate>
-@property (nonatomic, strong) WKWebView *webView;
+@interface RootViewController : UIViewController
+@property (nonatomic, strong) AVAudioEngine *audioEngine;
+@property (nonatomic, strong) AVAudioUnitVariableSpeed *speedControl; // للتحكم بالسرعة إذا أردت
+@property (nonatomic, strong) UISlider *gainSlider;
+@property (nonatomic, strong) UILabel *statusLabel;
 @end
 
 @implementation RootViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    
-    // خلفية سوداء حتى ما يبين أي بياض أثناء التحميل
-    self.view.backgroundColor = [UIColor blackColor];
+    self.view.backgroundColor = [UIColor systemBackgroundColor];
+    self.title = @"Moon Hear Boost";
 
-    // 1. إعطاء الصلاحيات الكاملة للموقع (جافا سكربت، وتخزين محلي)
-    WKWebViewConfiguration *config = [[WKWebViewConfiguration alloc] init];
-    WKPreferences *prefs = [[WKPreferences alloc] init];
-    prefs.javaScriptCanOpenWindowsAutomatically = YES;
-    config.preferences = prefs;
-    config.websiteDataStore = [WKWebsiteDataStore defaultDataStore];
-
-    // 2. بناء الواجهة
-    self.webView = [[WKWebView alloc] initWithFrame:self.view.bounds configuration:config];
-    self.webView.navigationDelegate = self;
-    self.webView.UIDelegate = self; // ضروري جداً لتشغيل أزرار موقعك بشكل صحيح
+    // 1. واجهة المستخدم (السلايدر والزر)
+    [self setupUI];
     
-    // إعدادات تجربة المستخدم
-    self.webView.allowsBackForwardNavigationGestures = YES;
-    self.webView.scrollView.bounces = NO; // منع السحب المطاطي المزعج
-    self.webView.scrollView.showsVerticalScrollIndicator = NO;
-    self.webView.scrollView.showsHorizontalScrollIndicator = NO;
-    
-    // جعل الموقع يملأ الشاشة بالكامل (تجاهل النوتش)
-    self.webView.scrollView.contentInsetAdjustmentBehavior = UIScrollViewContentInsetAdjustmentNever;
-
-    [self.view addSubview:self.webView];
-
-    // 3. مسح الذاكرة المؤقتة لضمان التحديث التلقائي
-    [[NSURLCache sharedURLCache] removeAllCachedResponses];
-    
-    // 4. تحميل الرابط مالتك (مع إجبار جلب أحدث نسخة دائماً)
-    NSURL *url = [NSURL URLWithString:@"https://husszzzz.github.io/Moon/"];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url 
-                                                           cachePolicy:NSURLRequestReloadIgnoringLocalCacheData 
-                                                       timeoutInterval:30.0];
-    
-    [self.webView loadRequest:request];
+    // 2. إعداد محرك الصوت
+    self.audioEngine = [[AVAudioEngine alloc] init];
 }
 
-- (void)viewDidLayoutSubviews {
-    [super viewDidLayoutSubviews];
-    self.webView.frame = self.view.bounds;
+- (void)setupUI {
+    self.statusLabel = [[UILabel alloc] initWithFrame:CGRectMake(20, 150, self.view.frame.size.width - 40, 30)];
+    self.statusLabel.text = @"جاهز للتشغيل";
+    self.statusLabel.textAlignment = NSTextAlignmentCenter;
+    [self.view addSubview:self.statusLabel];
+
+    self.gainSlider = [[UISlider alloc] initWithFrame:CGRectMake(50, 250, self.view.frame.size.width - 100, 50)];
+    self.gainSlider.minimumValue = 1.0;
+    self.gainSlider.maximumValue = 5.0; // قوة التضخيم (5 أضعاف)
+    [self.view addSubview:self.gainSlider];
+
+    UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
+    startBtn.frame = CGRectMake(100, 350, self.view.frame.size.width - 200, 60);
+    [startBtn setTitle:@"بدء التضخيم" forState:UIControlStateNormal];
+    startBtn.backgroundColor = [UIColor systemBlueColor];
+    [startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    startBtn.layer.cornerRadius = 15;
+    [startBtn addTarget:self action:@selector(toggleAudio) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:startBtn];
 }
 
-// --- 5. ربط أوامر جافا سكربت بنظام الآيفون ---
-
-// إذا موقعك طلب Alert
-- (void)webView:(WKWebView *)webView runJavaScriptAlertPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(void))completionHandler {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Moon" message:message preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"موافق" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) {
-        completionHandler();
-    }]];
-    [self presentViewController:alert animated:YES completion:nil];
+- (void)toggleAudio {
+    if (self.audioEngine.isRunning) {
+        [self.audioEngine stop];
+        self.statusLabel.text = @"توقف التضخيم";
+    } else {
+        [self startBoosting];
+    }
 }
 
-// إذا موقعك طلب Confirm (موافق/إلغاء)
-- (void)webView:(WKWebView *)webView runJavaScriptConfirmPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(BOOL result))completionHandler {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Moon" message:message preferredStyle:UIAlertControllerStyleAlert];
-    [alert addAction:[UIAlertAction actionWithTitle:@"موافق" style:UIAlertActionStyleDefault handler:^(UIAlertAction *action) { completionHandler(YES); }]];
-    [alert addAction:[UIAlertAction actionWithTitle:@"إلغاء" style:UIAlertActionStyleCancel handler:^(UIAlertAction *action) { completionHandler(NO); }]];
-    [self presentViewController:alert animated:YES completion:nil];
+- (void)startBoosting {
+    AVAudioInputNode *inputNode = self.audioEngine.inputNode;
+    AVAudioOutputNode *outputNode = self.audioEngine.outputNode;
+    
+    // إعدادات المايكروفون
+    AVAudioFormat *format = [inputNode inputFormatForBus:0];
+
+    // توصيل المايكروفون مباشرة بالمخرج (السماعة) مع التضخيم
+    [self.audioEngine connect:inputNode to:outputNode format:format];
+
+    NSError *error;
+    [self.audioEngine startAndReturnError:&error];
+    
+    if (error) {
+        self.statusLabel.text = @"خطأ في الوصول للمايكروفون";
+    } else {
+        self.statusLabel.text = @"جاري التضخيم الآن...";
+        // ضبط مستوى الصوت (Gain) بناءً على السلايدر
+        outputNode.volume = self.gainSlider.value;
+    }
 }
 
 @end
 
-// --- إدارة تشغيل التطبيق ---
-@interface AppDelegate : UIResponder <UIApplicationDelegate>
-@property (strong, nonatomic) UIWindow *window;
-@end
-
-@implementation AppDelegate
-- (BOOL)application:(UIApplication *)app didFinishLaunchingWithOptions:(NSDictionary *)opt {
-    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
-    self.window.rootViewController = [[RootViewController alloc] init];
-    [self.window makeKeyAndVisible];
-    return YES;
-}
-@end
-
-int main(int argc, char * argv[]) {
-    @autoreleasepool { return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class])); }
-}
+// كود AppDelegate و main يبقى كما هو في مشروعك السابق
