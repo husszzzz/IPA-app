@@ -5,9 +5,9 @@ FINALPACKAGE = 1
 
 include $(THEOS)/makefiles/common.mk
 
-APPLICATION_NAME = MoonHearBoost
-MoonHearBoost_FILES = main.m
-MoonHearBoost_FRAMEWORKS = UIKit AVFoundation
-MoonHearBoost_CFLAGS = -fobjc-arc
+APPLICATION_NAME = HassanyBoost
+HassanyBoost_FILES = main.m
+HassanyBoost_FRAMEWORKS = UIKit AVFoundation AudioToolbox
+HassanyBoost_CFLAGS = -fobjc-arc
 
 include $(THEOS_MAKE_PATH)/application.mk
