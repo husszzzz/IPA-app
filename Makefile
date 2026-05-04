@@ -3,8 +3,10 @@ ARCHS = arm64
 
 include $(THEOS)/makefiles/common.mk
 
-TWEAK_NAME = HearBoostPatch
-HearBoostPatch_FILES = Tweak.x
-HearBoostPatch_CFLAGS = -fobjc-arc
+APPLICATION_NAME = MoonHearBoost
+MoonHearBoost_FILES = main.m
+# أضفنا AVFoundation هنا
+MoonHearBoost_FRAMEWORKS = UIKit AVFoundation 
+MoonHearBoost_CFLAGS = -fobjc-arc
 
-include $(THEOS_MAKE_PATH)/tweak.mk
+include $(THEOS_MAKE_PATH)/application.mk
