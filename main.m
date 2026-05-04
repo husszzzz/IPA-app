@@ -3,7 +3,6 @@
 
 @interface RootViewController : UIViewController
 @property (nonatomic, strong) AVAudioEngine *audioEngine;
-@property (nonatomic, strong) AVAudioUnitVarispeed *speedControl; // تم تصحيح الإملاء هنا
 @property (nonatomic, strong) UISlider *gainSlider;
 @property (nonatomic, strong) UILabel *statusLabel;
 @end
@@ -12,7 +11,7 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    self.view.backgroundColor = [UIColor systemGroupedBackgroundColor]; // تصحيح اللون القديم
+    self.view.backgroundColor = [UIColor systemGroupedBackgroundColor];
     self.title = @"Moon Hear Boost";
     [self setupUI];
     self.audioEngine = [[AVAudioEngine alloc] init];
@@ -32,7 +31,7 @@
 
     UIButton *startBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     startBtn.frame = CGRectMake(100, 350, self.view.frame.size.width - 200, 60);
-    [startBtn setTitle:@"تشغيل / إيقاف" forState:UIControlStateNormal];
+    [startBtn setTitle:@"بدء / إيقاف" forState:UIControlStateNormal];
     startBtn.backgroundColor = [UIColor systemBlueColor];
     [startBtn setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     startBtn.layer.cornerRadius = 15;
@@ -51,14 +50,12 @@
 
 - (void)startBoosting {
     AVAudioInputNode *input = self.audioEngine.inputNode;
-    // تصحيح خطأ volume: الوصول للمخرج الصحيح
     self.audioEngine.mainMixerNode.outputVolume = self.gainSlider.value;
-
     [self.audioEngine connect:input to:self.audioEngine.mainMixerNode format:[input inputFormatForBus:0]];
-
+    
     NSError *error;
     [self.audioEngine startAndReturnError:&error];
-    self.statusLabel.text = error ? @"خطأ في التشغيل" : @"جاري التضخيم...";
+    self.statusLabel.text = error ? @"خطأ" : @"جاري التضخيم...";
 }
 @end
 
