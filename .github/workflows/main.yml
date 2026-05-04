@@ -12,8 +12,6 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup Theos
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
         echo "THEOS=~/theos" >> $GITHUB_ENV
@@ -25,13 +23,10 @@ jobs:
 
     - name: Create IPA
       run: |
-        # إنشاء هيكل ملف الـ IPA بشكل صحيح
         mkdir -p Payload/HassanyBoost.app
+        # هذا السطر يبحث عن الملف التنفيذي وينسخه مهما كان مكانه
+        find .theos/obj -name "HassanyBoost" -exec cp {} Payload/HassanyBoost.app/ \;
         
-        # نسخ الملف التنفيذي (تأكد من الاسم الصحيح الناتج من make)
-        cp .theos/obj/HassanyBoost.app/HassanyBoost Payload/HassanyBoost.app/
-        
-        # إنشاء ملف Info.plist لدعم العمل في الخلفية والمايك
         cat <<EOF > Payload/HassanyBoost.app/Info.plist
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -40,7 +35,7 @@ jobs:
             <key>CFBundleExecutable</key>
             <string>HassanyBoost</string>
             <key>CFBundleIdentifier</key>
-            <string>com.hassany.proboost</string>
+            <string>com.hassany.boost100x</string>
             <key>CFBundleName</key>
             <string>Hassany</string>
             <key>CFBundlePackageType</key>
@@ -52,9 +47,7 @@ jobs:
                 <string>audio</string>
             </array>
             <key>NSMicrophoneUsageDescription</key>
-            <string>نحتاج المايكروفون للتضخيم والتسجيل الاحترافي</string>
-            <key>LSRequiresIPhoneOS</key>
-            <true/>
+            <string>نحتاج المايك للتضخيم</string>
             <key>MinimumOSVersion</key>
             <string>14.0</string>
         </dict>
@@ -64,7 +57,7 @@ jobs:
         zip -r HassanyBoost.ipa Payload
 
     - name: Upload IPA
-      uses: actions/upload-artifact@v4 # تم التحديث للنسخة v4 لحل خطأ الـ Deprecation
+      uses: actions/upload-artifact@v4
       with:
-        name: HassanyBoost-IPA
+        name: HassanyBoost-Final
         path: HassanyBoost.ipa
