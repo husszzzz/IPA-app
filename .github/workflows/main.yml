@@ -1,4 +1,4 @@
-name: Build HassanyBoost
+name: Build HassanyPureBoost
 
 on:
   push:
@@ -24,9 +24,10 @@ jobs:
     - name: Create IPA
       run: |
         mkdir -p Payload/HassanyBoost.app
-        # هذا السطر يبحث عن الملف التنفيذي وينسخه مهما كان مكانه
+        # البحث عن الملف التنفيذي ونسخه
         find .theos/obj -name "HassanyBoost" -exec cp {} Payload/HassanyBoost.app/ \;
         
+        # إنشاء ملف الإعدادات لضمان عمل المايك والخلفية
         cat <<EOF > Payload/HassanyBoost.app/Info.plist
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -35,7 +36,7 @@ jobs:
             <key>CFBundleExecutable</key>
             <string>HassanyBoost</string>
             <key>CFBundleIdentifier</key>
-            <string>com.hassany.boost100x</string>
+            <string>com.hassany.pureboost</string>
             <key>CFBundleName</key>
             <string>Hassany</string>
             <key>CFBundlePackageType</key>
@@ -43,11 +44,9 @@ jobs:
             <key>CFBundleShortVersionString</key>
             <string>1.0</string>
             <key>UIBackgroundModes</key>
-            <array>
-                <string>audio</string>
-            </array>
+            <array><string>audio</string></array>
             <key>NSMicrophoneUsageDescription</key>
-            <string>نحتاج المايك للتضخيم</string>
+            <string>نحتاج المايك لتنقية وتضخيم الصوت</string>
             <key>MinimumOSVersion</key>
             <string>14.0</string>
         </dict>
@@ -59,5 +58,5 @@ jobs:
     - name: Upload IPA
       uses: actions/upload-artifact@v4
       with:
-        name: HassanyBoost-Final
+        name: Hassany-Pure-Final
         path: HassanyBoost.ipa
