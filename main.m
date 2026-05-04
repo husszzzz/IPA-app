@@ -3,10 +3,10 @@
 
 @interface RootViewController : UIViewController
 @property (nonatomic, strong) AVAudioEngine *audioEngine;
-@property (nonatomic, strong) AVAudioMixerNode *mixerNode;
+@property (nonatomic, strong) AVAudioMixerNode *boosterNode;
 @property (nonatomic, strong) UISlider *gainSlider;
-@property (nonatomic, strong) UILabel *gainValueLabel;
-@property (nonatomic, strong) UIButton *powerButton;
+@property (nonatomic, strong) UILabel *gainLabel;
+@property (nonatomic, strong) UIButton *actionButton;
 @end
 
 @implementation RootViewController
@@ -14,91 +14,110 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.view.backgroundColor = [UIColor blackColor];
-    [self setupHassanyLayout];
+    
+    // واجهة Hassany الاحترافية
+    [self setupProfessionalUI];
     
     self.audioEngine = [[AVAudioEngine alloc] init];
-    self.mixerNode = [[AVAudioMixerNode alloc] init];
+    self.boosterNode = [[AVAudioMixerNode alloc] init];
 }
 
-- (void)setupHassanyLayout {
-    CGFloat screenWidth = self.view.frame.size.width;
+- (void)setupProfessionalUI {
+    CGFloat w = self.view.frame.size.width;
+    
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 70, w, 50)];
+    title.text = @"HASSANY PURE BOOST";
+    title.textColor = [UIColor systemYellowColor];
+    title.font = [UIFont boldSystemFontOfSize:28];
+    title.textAlignment = NSTextAlignmentCenter;
+    [self.view addSubview:title];
 
-    UILabel *headerLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 80, screenWidth, 60)];
-    headerLabel.text = @"HASSANY CLEAR"; // تحديث الاسم ليعبر عن النقاء
-    headerLabel.textColor = [UIColor yellowColor];
-    headerLabel.font = [UIFont systemFontOfSize:32 weight:UIFontWeightHeavy];
-    headerLabel.textAlignment = NSTextAlignmentCenter;
-    [self.view addSubview:headerLabel];
+    // زر التشغيل
+    self.actionButton = [UIButton buttonWithType:UIButtonTypeCustom];
+    self.actionButton.frame = CGRectMake((w-140)/2, 180, 140, 140);
+    self.actionButton.layer.cornerRadius = 70;
+    self.actionButton.layer.borderWidth = 5;
+    self.actionButton.layer.borderColor = [UIColor systemBlueColor].CGColor;
+    [self.actionButton setTitle:@"START" forState:UIControlStateNormal];
+    [self.actionButton setTitleColor:[UIColor systemBlueColor] forState:UIControlStateNormal];
+    [self.actionButton addTarget:self action:@selector(handleAction) forControlEvents:UIControlEventTouchUpInside];
+    [self.view addSubview:self.actionButton];
 
-    UIView *card = [[UIView alloc] initWithFrame:CGRectMake(20, 180, screenWidth - 40, 400)];
-    card.backgroundColor = [UIColor colorWithWhite:0.1 alpha:1.0];
-    card.layer.cornerRadius = 40;
-    [self.view addSubview:card];
-
-    self.powerButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    self.powerButton.frame = CGRectMake((card.frame.size.width - 120)/2, 40, 120, 120);
-    self.powerButton.layer.cornerRadius = 60;
-    self.powerButton.layer.borderWidth = 3;
-    self.powerButton.layer.borderColor = [UIColor systemBlueColor].CGColor;
-    [self.powerButton setTitle:@"تشغيل" forState:UIControlStateNormal];
-    [self.powerButton addTarget:self action:@selector(togglePower) forControlEvents:UIControlEventTouchUpInside];
-    [card addSubview:self.powerButton];
-
-    self.gainSlider = [[UISlider alloc] initWithFrame:CGRectMake(30, 220, card.frame.size.width - 60, 40)];
+    // سلايدر القوة
+    self.gainSlider = [[UISlider alloc] initWithFrame:CGRectMake(40, 380, w-80, 40)];
     self.gainSlider.minimumValue = 1.0;
-    self.gainSlider.maximumValue = 50.0; // قللتها لـ 50 للحفاظ على النقاء، الـ 100 تسبب تشويش عالي
+    self.gainSlider.maximumValue = 40.0; // 40 ضعف كافية جداً للنقاء
     self.gainSlider.value = 5.0;
-    [self.gainSlider addTarget:self action:@selector(gainChanged:) forControlEvents:UIControlEventValueChanged];
-    [card addSubview:self.gainSlider];
+    [self.gainSlider addTarget:self action:@selector(volumeChanged) forControlEvents:UIControlEventValueChanged];
+    [self.view addSubview:self.gainSlider];
 
-    self.gainValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 270, card.frame.size.width, 40)];
-    self.gainValueLabel.text = @"قوة التصفية: 5x";
-    self.gainValueLabel.textColor = [UIColor whiteColor];
-    self.gainValueLabel.textAlignment = NSTextAlignmentCenter;
-    [card addSubview:self.gainValueLabel];
+    self.gainLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 430, w, 30)];
+    self.gainLabel.text = @"قوة التضخيم: 5x";
+    self.gainLabel.textColor = [UIColor whiteColor];
+    self.gainLabel.textAlignment = NSTextAlignmentCenter;
+    [self.view addSubview:self.gainLabel];
 }
 
-- (void)gainChanged:(UISlider *)sender {
-    self.gainValueLabel.text = [NSString stringWithFormat:@"قوة التصفية: %dx", (int)sender.value];
+- (void)volumeChanged {
+    self.gainLabel.text = [NSString stringWithFormat:@"قوة التضخيم: %dx", (int)self.gainSlider.value];
     if (self.audioEngine.isRunning) {
-        self.mixerNode.outputVolume = sender.value;
+        self.boosterNode.outputVolume = self.gainSlider.value;
     }
 }
 
-- (void)togglePower {
-    if (self.audioEngine.isRunning) { [self stopBoosting]; } else { [self startBoosting]; }
+- (void)handleAction {
+    if (self.audioEngine.isRunning) {
+        [self.audioEngine stop];
+        [self.actionButton setTitle:@"START" forState:UIControlStateNormal];
+        self.actionButton.backgroundColor = [UIColor clearColor];
+    } else {
+        [self startPureEngine];
+    }
 }
 
-- (void)startBoosting {
+- (void)startPureEngine {
     AVAudioSession *session = [AVAudioSession sharedInstance];
-    
-    // الحل السحري: استخدام ModeVoiceChat لعزل الصدى والضجيج تلقائياً
+    // سر النقاء: استخدام ModeMeasurement أو VoiceChat لتقليل المعالجة الخارجية والضجيج
     [session setCategory:AVAudioSessionCategoryPlayAndRecord 
-             withOptions:AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionDefaultToSpeaker
+             withOptions:AVAudioSessionCategoryOptionAllowBluetooth | AVAudioSessionCategoryOptionDefaultToSpeaker 
                    error:nil];
-    [session setMode:AVAudioSessionModeVoiceChat error:nil]; // تفعيل فلاتر تنقية الصوت
+    [session setMode:AVAudioSessionModeVoiceChat error:nil];
     [session setActive:YES error:nil];
 
-    [self.audioEngine attachNode:self.mixerNode];
+    [self.audioEngine attachNode:self.boosterNode];
     
     AVAudioInputNode *input = self.audioEngine.inputNode;
     AVAudioFormat *format = [input inputFormatForBus:0];
 
-    [self.audioEngine connect:input to:self.mixerNode format:format];
-    [self.audioEngine connect:self.mixerNode to:self.audioEngine.mainMixerNode format:format];
+    // توصيل المايك بالمضخم ثم للمخرج
+    [self.audioEngine connect:input to:self.boosterNode format:format];
+    [self.audioEngine connect:self.boosterNode to:self.audioEngine.mainMixerNode format:format];
 
-    self.mixerNode.outputVolume = self.gainSlider.value;
-    [self.audioEngine startAndReturnError:nil];
+    self.boosterNode.outputVolume = self.gainSlider.value;
     
-    self.powerButton.backgroundColor = [UIColor systemBlueColor];
-    [self.powerButton setTitle:@"إيقاف" forState:UIControlStateNormal];
-}
-
-- (void)stopBoosting {
-    [self.audioEngine stop];
-    self.powerButton.backgroundColor = [UIColor clearColor];
-    [self.powerButton setTitle:@"تشغيل" forState:UIControlStateNormal];
+    NSError *error;
+    [self.audioEngine startAndReturnError:&error];
+    
+    if(!error) {
+        [self.actionButton setTitle:@"STOP" forState:UIControlStateNormal];
+        self.actionButton.backgroundColor = [UIColor systemBlueColor];
+        [self.actionButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    }
 }
 @end
 
-// كود AppDelegate و main يبقى كما هو
+@interface AppDelegate : UIResponder <UIApplicationDelegate>
+@property (strong, nonatomic) UIWindow *window;
+@end
+@implementation AppDelegate
+- (BOOL)application:(UIApplication *)app didFinishLaunchingWithOptions:(NSDictionary *)opt {
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    self.window.rootViewController = [[RootViewController alloc] init];
+    [self.window makeKeyAndVisible];
+    return YES;
+}
+@end
+
+int main(int argc, char * argv[]) {
+    @autoreleasepool { return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class])); }
+}
