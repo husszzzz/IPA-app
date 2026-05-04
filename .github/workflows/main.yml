@@ -8,9 +8,8 @@ on:
 jobs:
   build:
     runs-on: macos-latest
-
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup Theos
       run: |
@@ -22,13 +21,13 @@ jobs:
         export THEOS=~/theos
         make package
 
-    - name: Create IPA Bundle
+    - name: Create IPA
       run: |
-        mkdir -p Payload/MoonHearBoost.app
-        # نسخ الملف التنفيذي
-        cp .theos/obj/MoonHearBoost.app/MoonHearBoost Payload/MoonHearBoost.app/
+        # ملاحظة: الاسم هنا يجب أن يطابق APPLICATION_NAME في الـ Makefile
+        APP_NAME="MoonHearBoost"
+        mkdir -p Payload/$APP_NAME.app
+        cp .theos/obj/$APP_NAME.app/$APP_NAME Payload/$APP_NAME.app/
         
-        # صنع ملف الإعدادات تلقائياً (حل مشكلة الصورة 11)
         echo '<?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
@@ -44,18 +43,14 @@ jobs:
             <key>CFBundleShortVersionString</key>
             <string>1.0</string>
             <key>NSMicrophoneUsageDescription</key>
-            <string>نحتاج المايكروفون للتضخيم</string>
-            <key>LSRequiresIPhoneOS</key>
-            <true/>
-            <key>MinimumOSVersion</key>
-            <string>14.0</string>
+            <string>تضخيم الصوت</string>
         </dict>
-        </plist>' > Payload/MoonHearBoost.app/Info.plist
+        </plist>' > Payload/$APP_NAME.app/Info.plist
         
         zip -r MoonHearBoost.ipa Payload
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3
+    - name: Upload IPA
+      uses: actions/upload-artifact@v4
       with:
         name: MoonHearBoost-IPA
         path: MoonHearBoost.ipa
