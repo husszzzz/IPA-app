@@ -25,15 +25,14 @@
 }
 
 - (void)setupProfessionalUI {
-    // شعار Hassany
+    // شعار Hassany - تم تغيير اللون للأصفر الرسمي لحل الخطأ
     UILabel *logoLabel = [[UILabel alloc] initWithFrame:CGRectMake(0, 100, self.view.frame.size.width, 50)];
     logoLabel.text = @"HASSANY";
-    logoLabel.textColor = [UIColor systemGoldColor];
+    logoLabel.textColor = [UIColor systemYellowColor]; 
     logoLabel.font = [UIFont systemFontOfSize:35 weight:UIFontWeightHeavy];
     logoLabel.textAlignment = NSTextAlignmentCenter;
     [self.view addSubview:logoLabel];
 
-    // زر القائمة الجانبية
     UIButton *menuBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     menuBtn.frame = CGRectMake(20, 50, 40, 40);
     [menuBtn setTitle:@"☰" forState:UIControlStateNormal];
@@ -41,7 +40,6 @@
     [menuBtn addTarget:self action:@selector(toggleMenu) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:menuBtn];
 
-    // زر التشغيل المركزي
     UIButton *powerBtn = [UIButton buttonWithType:UIButtonTypeCustom];
     powerBtn.frame = CGRectMake((self.view.frame.size.width-150)/2, 250, 150, 150);
     powerBtn.backgroundColor = [UIColor systemBlueColor];
@@ -53,7 +51,6 @@
     [powerBtn addTarget:self action:@selector(toggleBoost) forControlEvents:UIControlEventTouchUpInside];
     [self.view addSubview:powerBtn];
 
-    // زر التسجيل
     UIButton *recBtn = [UIButton buttonWithType:UIButtonTypeSystem];
     recBtn.frame = CGRectMake((self.view.frame.size.width-100)/2, 450, 100, 50);
     [recBtn setTitle:@"⏺ RECORD" forState:UIControlStateNormal];
@@ -92,7 +89,6 @@
 
 - (void)startAudioEngine {
     AVAudioSession *session = [AVAudioSession sharedInstance];
-    // أهم سطر لجعل التطبيق يعمل والجهاز مقفل
     [session setCategory:AVAudioSessionCategoryPlayAndRecord 
              withOptions:AVAudioSessionCategoryOptionDefaultToSpeaker | AVAudioSessionCategoryOptionAllowBluetooth
                    error:nil];
@@ -120,7 +116,21 @@
     self.recorder = [[AVAudioRecorder alloc] initWithURL:url settings:settings error:nil];
     [self.recorder record];
 }
-
 @end
 
-// AppDelegate و main يبقيان كما هما
+@interface AppDelegate : UIResponder <UIApplicationDelegate>
+@property (strong, nonatomic) UIWindow *window;
+@end
+
+@implementation AppDelegate
+- (BOOL)application:(UIApplication *)app didFinishLaunchingWithOptions:(NSDictionary *)opt {
+    self.window = [[UIWindow alloc] initWithFrame:[UIScreen mainScreen].bounds];
+    self.window.rootViewController = [[UINavigationController alloc] initWithRootViewController:[[RootViewController alloc] init]];
+    [self.window makeKeyAndVisible];
+    return YES;
+}
+@end
+
+int main(int argc, char * argv[]) {
+    @autoreleasepool { return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class])); }
+}
