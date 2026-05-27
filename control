@@ -1,9 +1,10 @@
-Package: com.huss.moonmanager
-Name: MoonManager
-Depends: pods
+Package: com.hassany.horrorhouse
+Name: الحسني في البيت المهجور
+Depends: mobilesubstrate
 Version: 1.0
 Architecture: iphoneos-arm
-Description: Moon Manager App
-Maintainer: huss
-Author: huss
-Section: Applications
+Description: لعبة رعب احترافية بجويستيك ببجي وأنيميشن صاعق
+Maintainer: Hassany
+Author: Hassany
+Section: Games
+
