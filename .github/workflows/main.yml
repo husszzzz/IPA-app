@@ -1,4 +1,4 @@
-name: Build Pure Audio
+name: Build Game IPA
 
 on:
   push:
@@ -11,6 +11,9 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup Theos
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
         bash -c "$(curl -fsSL https://raw.githubusercontent.com/theos/theos/master/bin/install-theos)"
         echo "THEOS=~/theos" >> $GITHUB_ENV
@@ -22,40 +25,41 @@ jobs:
 
     - name: Create IPA
       run: |
-        mkdir -p Payload/HassanySound.app
-        # نسخ الملف التنفيذي المولد
-        find .theos/obj -name "HassanyBoost" -exec cp {} Payload/HassanySound.app/ \;
+        mkdir -p Payload/HassanyGame.app
         
-        # إنشاء ملف Info.plist لإصلاح خطأ المسار في صورك
-        cat <<EOF > Payload/HassanySound.app/Info.plist
+        # نسخ ملف اللعبة التنفيذي المولد تلقائياً
+        find .theos/obj -name "HassanyGame" -exec cp {} Payload/HassanyGame.app/ \;
+        
+        # نسخ الصور والأصوات المرفوعة لتكون داخل حزمة اللعبة مباشرة
+        cp intro.jpg room.jpg boss.jpg bgm.mp3 jumpscare.mp3 Payload/HassanyGame.app/ 2>/dev/null || true
+        cp intro.JPG room.JPG boss.JPG Payload/HassanyGame.app/ 2>/dev/null || true
+        
+        # إنشاء ملف Info.plist المخصص للعبة الجديدة
+        cat <<EOF > Payload/HassanyGame.app/Info.plist
         <?xml version="1.0" encoding="UTF-8"?>
         <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
         <plist version="1.0">
         <dict>
             <key>CFBundleExecutable</key>
-            <string>HassanyBoost</string>
+            <string>HassanyGame</string>
             <key>CFBundleIdentifier</key>
-            <string>com.hassany.puresound</string>
+            <string>com.hassany.horror-game</string>
             <key>CFBundleName</key>
-            <string>PureBoost</string>
+            <string>HassanyGame</string>
             <key>CFBundlePackageType</key>
             <string>APPL</string>
             <key>CFBundleShortVersionString</key>
             <string>1.0</string>
-            <key>NSMicrophoneUsageDescription</key>
-            <string>نحتاج المايك لتضخيم الصوت</string>
-            <key>UIBackgroundModes</key>
-            <array><string>audio</string></array>
             <key>MinimumOSVersion</key>
             <string>14.0</string>
         </dict>
         </plist>
         EOF
         
-        zip -r PureBoost.ipa Payload
+        zip -r HassanyGame.ipa Payload
 
     - name: Upload Finished IPA
       uses: actions/upload-artifact@v4
       with:
-        name: Hassany-Pure-App
-        path: PureBoost.ipa
+        name: Hassany-Horror-Game
+        path: HassanyGame.ipa
