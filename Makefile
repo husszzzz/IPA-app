@@ -1,13 +1,10 @@
 TARGET := iphone:clang:latest:14.0
-ARCHS = arm64
-DEBUG = 0
-FINALPACKAGE = 1
+ARCHS = arm64 arm64e
 
 include $(THEOS)/makefiles/common.mk
 
-APPLICATION_NAME = HassanyBoost
-HassanyBoost_FILES = main.m
-HassanyBoost_FRAMEWORKS = UIKit AVFoundation AudioToolbox
-HassanyBoost_CFLAGS = -fobjc-arc
+TWEAK_NAME = IPA-app
+IPA-app_FILES = main.m
+IPA-app_FRAMEWORKS = UIKit AVFoundation CoreGraphics
 
-include $(THEOS_MAKE_PATH)/application.mk
+include $(THEOS_MAKE_PATH)/tweak.mk
