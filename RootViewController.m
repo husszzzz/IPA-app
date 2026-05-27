@@ -217,13 +217,17 @@
     if (self.currentState != GameStatePlaying) return;
     
     if (self.moveVelocity.x != 0 || self.moveVelocity.y != 0) {
-        self.playerPos.x += self.moveVelocity.x;
-        self.playerPos.y += self.moveVelocity.y;
+        
+        // التعديل الجديد لحل مشكلة الـ CGPoint
+        CGPoint pos = self.playerPos;
+        pos.x += self.moveVelocity.x;
+        pos.y += self.moveVelocity.y;
         
         // جدار الحماية الحركي: يمنع اللاعب من الخروج من شاشة الآيفون
-        self.playerPos.x = MAX(28, MIN(self.view.bounds.size.width - 28, self.playerPos.x));
-        self.playerPos.y = MAX(28, MIN(self.view.bounds.size.height - 28, self.playerPos.y));
+        pos.x = MAX(28, MIN(self.view.bounds.size.width - 28, pos.x));
+        pos.y = MAX(28, MIN(self.view.bounds.size.height - 28, pos.y));
         
+        self.playerPos = pos;
         self.playerNode.center = self.playerPos;
         
         // 🚨 منطقة الخطر: إذا دخل اللاعب لعمق البيت المهجور (عبر 65% من عرض الشاشة يمنة)
@@ -263,8 +267,8 @@
     ];
     [self.view.layer addAnimation:shake forKey:@"horrorShake"];
     
-    // 4. المؤقت الزمني للـ Respawn (ورا 3 ثواني من الرعب يرجع يترسب بالبداية)
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.2 * NSEC_PER_SEC)), dispatch_get_main_loop(), ^{
+    // 4. المؤقت الزمني للـ Respawn (ورا 3 ثواني من الرعب يرجع يترسب بالبداية) - تم تصحيح الخطأ الإملائي هنا
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(3.2 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
         
         // إخفاء الشبح وإيقاف الاهتزاز الكارثي
         self.ghostImageView.hidden = YES;
