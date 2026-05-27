@@ -61,17 +61,20 @@
 }
 
 - (void)setGameImage:(NSString *)name {
-    // يقرأ الصورة مباشرة من المجلد الرئيسي للـ Tweak
+    // محرك ذكي يقرأ الصورة سواء كانت الصيغة .jpg أو .JPG
     UIImage *img = [UIImage imageNamed:name];
     if (!img) {
-        NSString *path = [[NSBundle mainBundle] pathForResource:[name stringByDeletingPathExtension] ofType:[name pathExtension]];
+        NSString *baseName = [name stringByDeletingPathExtension];
+        NSString *path = [[NSBundle mainBundle] pathForResource:baseName ofType:@"jpg"];
+        if (!path) path = [[NSBundle mainBundle] pathForResource:baseName ofType:@"JPG"];
+        if (!path) path = [[NSBundle mainBundle] pathForResource:baseName ofType:@"jpeg"];
+        if (!path) path = [[NSBundle mainBundle] pathForResource:baseName ofType:@"JPEG"];
         if (path) img = [UIImage imageWithContentsOfFile:path];
     }
     self.bgImageView.image = img;
 }
 
 - (void)playBackgroundMusic:(NSString *)filename {
-    // يقرأ ملف الصوت مباشرة من المجلد الرئيسي للـ Tweak
     NSURL *url = [[NSBundle mainBundle] URLForResource:filename withExtension:@"mp3"];
     if (url) {
         NSError *error;
@@ -116,7 +119,6 @@
     [self playSoundEffect:@"jumpscare"];
     [self setGameImage:@"boss.jpg"];
     self.storyLabel.text = @"فجأة وبدون سابق إنذار!! قفز الوحش المرعب أمامك! عيونه تشع باللون الأحمر وجسمه ضخم جداً! ماذا ستفعل يا الحسني؟!";
-    [btn1 setTitle:@"أطلق النار مباشرة على رأسه!" forState:UIControlStateNormal];
     [self.choice1Button setTitle:@"أطلق النار مباشرة على رأسه!" forState:UIControlStateNormal];
     [self.choice2Button setTitle:@"حاول الهروب بسرعة من النافذة!" forState:UIControlStateNormal];
 }
