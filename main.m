@@ -61,7 +61,6 @@
 }
 
 - (void)setGameImage:(NSString *)name {
-    // محرك ذكي يقرأ الصورة سواء كانت الصيغة .jpg أو .JPG
     UIImage *img = [UIImage imageNamed:name];
     if (!img) {
         NSString *baseName = [name stringByDeletingPathExtension];
@@ -152,15 +151,25 @@
         [self loadScene1]; 
     }
 }
-
 @end
 
-__attribute__((constructor))
-static void initialize_game() {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(4.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        UIWindow *window = [UIApplication sharedApplication].keyWindow;
-        HassanyGameVC *gameVC = [[HassanyGameVC alloc] init];
-        gameVC.modalPresentationStyle = UIModalPresentationFullScreen;
-        [window.rootViewController presentViewController:gameVC animated:YES completion:nil];
-    });
+// 🚀 مشغل التطبيق الرسمي المستقل
+@interface AppDelegate : UIResponder <UIApplicationDelegate>
+@property (strong, nonatomic) UIWindow *window;
+@end
+
+@implementation AppDelegate
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
+    self.window = [[UIWindow alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+    HassanyGameVC *gameVC = [[HassanyGameVC alloc] init];
+    self.window.rootViewController = gameVC;
+    [self.window makeKeyAndVisible];
+    return YES;
+}
+@end
+
+int main(int argc, char * argv[]) {
+    @autoreleasepool {
+        return UIApplicationMain(argc, argv, nil, NSStringFromClass([AppDelegate class]));
+    }
 }
